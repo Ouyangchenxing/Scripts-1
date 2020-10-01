@@ -9,7 +9,7 @@ name: txnews3
 on:
   workflow_dispatch:
   schedule:
-     - cron: '*/7 1-14 * * *'
+     - cron: '*/6 * * * *'
   watch:
      types: started
     
