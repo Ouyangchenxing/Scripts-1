@@ -27,7 +27,7 @@ jobs:
         run: |
           node Task/youth.js
         env:
-          YOUTH_HEADER: ${{ secreYOUTH_HEADER2 }}
+          YOUTH_HEADER: ${{ secre.YOUTH_HEADER2 }}
           YOUTH_ARTBODY: ${{ secrets.YOUTH_ARTBODY2 }}
           YOUTH_REDBODY: ${{ secrets.YOUTH_REDBODY2 }}
           YOUTH_TIME: ${{ secrets.YOUTH_TIME2 }}
