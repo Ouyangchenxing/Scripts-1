@@ -22,7 +22,7 @@ jobs:
       - name: npm install
       
           npm install
-      - name: '运行 【3中青看点自动阅读2】'
+      - name: '运行 【3中青看点自动看视频1】'
         run: |
           node Task/Youth_Read.js
         env:
