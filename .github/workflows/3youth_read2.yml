@@ -22,11 +22,11 @@ jobs:
       - name: npm install
         run: |
           npm install
-      - name: '运行 【中青看点自动阅读2】'
+      - name: '运行 【3中青看点自动阅读2】'
         run: |
           node Task/Youth_Read.js
         env:
-          YOUTH_READ: ${{ secrets.YOUTH_READ2 }}
+          YOUTH_READ: ${{ secrets.YOUTH_READ10 }}
           PUSH_KEY: ${{ secrets.PUSH_KEY }}
           BARK_PUSH: ${{ secrets.BARK_PUSH }}
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
