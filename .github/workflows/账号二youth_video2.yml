@@ -6,7 +6,7 @@ name: 账号二youth_video2
 on:
   workflow_dispatch:
   schedule:
-     - cron: '*/30 7-8 * * *'
+     - cron: '*/30 6-7 * * *'
   watch:
     types: started
 jobs:
