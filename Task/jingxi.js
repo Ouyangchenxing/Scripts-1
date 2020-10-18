@@ -1,3 +1,261 @@
+/*
+
+更新时间:10-09 20:05
+
+本脚本为京东旗下京喜app签到脚本
+
+本脚本使用京东公共Cooike，支持双账号，获取方法请查看NobyDa大佬脚本说明
+
+[task_local]
+
+0 9 * * * https://raw.githubusercontent.com/Sunert/Scripts/master/Task/jingxi.js
+
+~~~~~~~~~~~~~~~~
+
+[MITM]
+
+hostname = wq.jd.com
+
+~~~~~~~~~~~~~~~~
+
+*/
+
+const $ = new Env('京喜');
+
+let cookiesArr = [], cookie = '', signresult,todaypoint = 0;
+
+const notify = $.isNode() ? require('./sendNotify') : '';
+
+const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
+
+if ($.isNode()) {
+
+  Object.keys(jdCookieNode).forEach((item) => {
+
+    cookiesArr.push(jdCookieNode[item])
+
+  })
+
+} else {
+
+  cookiesArr.push($.getdata('CookieJD'));
+
+  cookiesArr.push($.getdata('CookieJD2'))
+
+}
+
+!(async () => {
+
+  if (!cookiesArr[0]) {
+
+    $.msg($.name, '【提示】请先获取京东账号一cookie\n直接使用NobyDa的京东签到获取', 'https://bean.m.jd.com/', {"open-url": "https://bean.m.jd.com/"});
+
+    return;
+
+  }
+
+  for (let i = 0; i < cookiesArr.length; i++) {
+
+    if (cookiesArr[i]) {
+
+      cookie = cookiesArr[i];
+
+      UserName = decodeURIComponent(cookie.match(/pt_pin=(\w+)/) && cookie.match(/pt_pin=(\w+)/)[1])
+
+      $.index = i + 1;
+
+      console.log(`\n开始【京东账号${$.index}】${UserName}\n`);
+
+      await getsign();
+
+      await Tasklist();
+
+      await doublesign();
+
+      await coininfo();
+
+      await showmsg();
+
+    if ($.isNode()){
+
+       await notify.sendNotify($.name + " 账号昵称:" + nickname, $.sub+`\n`+$.desc)
+
+         }
+
+    }
+
+  }
+
+})()
+
+    .catch((e) => $.logErr(e))
+
+    .finally(() => $.done())
+
+function getsign() {
+
+  return new Promise((resolve) => {
+
+    const signurl = {
+
+      url: 'https://wq.jd.com/pgcenter/sign/UserSignOpr?g_login_type=1',
+
+      headers: {
+
+        "Content-Type": "application/x-www-form-urlencoded",
+
+        Cookie: cookie,
+
+        Referer: "https://wqsh.jd.com/pingou/taskcenter/index.html"
+
+      },
+
+    }
+
+    $.get(signurl, (err, resp, data) => {
+
+      signres = JSON.parse(data)
+
+      if (signres.retCode == '0') {
+
+        nickname = signres.data.nickname
+
+        totalpoints = signres.data.pgAmountTotal
+
+        signdays = "已签" + signres.data.signDays + "天"
+
+        if (signres.data.signStatus == 0) {
+
+          signresult = "签到成功"
+
+          signdays += " 今日获得" + data.match(/[0-9]+/g)[4] + "积分"
+
+        } else if (signres.data.signStatus == 1) {
+
+          signresult = "签到重复"
+
+        }
+
+      } else if (signres.retCode == '30003') {
+
+        $.msg($.name, '【提示】京东cookie已失效,请重新登录获取', 'https://bean.m.jd.com/', {"open-url": "https://bean.m.jd.com/"});
+
+      }
+
+      resolve()
+
+    })
+
+  })
+
+}
+
+function coininfo() {
+
+  return new Promise((resolve, reject) => {
+
+    const coinurl = {
+
+      url: "https://wq.jd.com/pgcenter/sign/QueryPGDetail?sceneval=2",
+
+      headers: {
+
+        "Content-Type": "application/x-www-form-urlencoded",
+
+        Cookie: cookie,
+
+        Referer: "https://jddx.jd.com/m/jddnew/money/index.html"
+
+      }
+
+    }
+
+    $.get(coinurl, (err, resp, data) => {
+
+      let coindata = JSON.parse(data),
+
+          localetime = new Date(new Date().toLocaleDateString()).getTime()/1000,
+
+          item = coindata.data.list;
+
+           daytotal = Number();
+
+        var i = 0;
+
+        for(i=0;i<item.length && item[i].time>=localetime;i++){
+
+            if (item[i].activeId === '10000'){
+
+             todaypoint = item[i].accountValue
+
+            };
+
+            if (item[i].activeId ==='30000'){
+
+             daytotal += item[i].accountValue
+
+           };
+
+          }
+
+       resolve()
+
+     })
+
+  })
+
+}
+
+function Tasklist(taskid) {
+
+  return new Promise( (resolve) => {
+
+    const url = {
+
+      url: 'https://m.jingxi.com/pgcenter/task/QueryPgTaskCfgByType?&taskType=3',
+
+      headers: {
+
+        "Content-Type": "application/x-www-form-urlencoded",
+
+        Cookie: cookie,
+
+        Referer: "https://st.jingxi.com/pingou/task_center/task/index.html?jxsid="
+
+      },
+
+    }
+
+    $.get(url, async (err, resp, data) => {
+
+      totaskres = JSON.parse(data)
+
+      var item = totaskres.data.tasks;
+
+      let taskArr = [];
+
+      for (task of item) {
+
+        taskArr.push(task.taskId);
+
+        await dotask(task.taskId);
+
+        await taskFinish(task.taskId);
+
+       }
+
+      resolve()
+
+    })
+
+  })
+
+}
+
+function dotask(id) {
+
+  return new Promise((resolve) => {
+
     const url = {
 
       url: `https://m.jingxi.com/pgcenter/task/drawUserTask?sceneval=2&taskid=${id}`,
